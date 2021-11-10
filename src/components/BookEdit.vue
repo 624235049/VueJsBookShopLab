@@ -61,6 +61,20 @@
         <div class="form-group row">
             <div class="col">
                 <div class="form-group">
+                    <label for="publishedDate">Published Date:</label>
+                    <vc-date-picker v-model="book.publishedDate" mode="date" id="publishedDate" name="publishedDate" />
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label for="bookimage">Upload Image:</label>
+                    <UploadImage id="bookimage" name="bookimage" ref="bookimage" /><br>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col">
+                <div class="form-group">
                     <label for="description">Description:</label>
                     <textarea v-model="book.shortDescription" class="form-control" id="description" placeholder="Enter Description" rows="3"></textarea>
 
@@ -77,12 +91,18 @@
 </template>
 
 <script>
+import UploadImage from './UploadImage.vue';
 import axios from "axios";
+import moment from 'moment';
 export default {
     name: "BookEdit",
+    components:{
+        UploadImage
+        },
     data() {
         return {
-            book: {}
+            book: {},
+            AccessToken:""
         }
     },
     methods: {
@@ -90,24 +110,43 @@ export default {
 
             if (confirm("Do you want to save?")) {
 
-                await axios.put (this.$apiUrl + "book/" + this.$route.params.bookid , this.book);
-                await this.$router.push('/');
+                this.book.publishedDate = moment(String(this.book.publishedDate)).format('YYYY-MM-DD');
+                let bookimage = await this.$refs.bookimage.getFileName()
+
+                if (await bookimage !== "") {
+                    this.book.thumbnailUrl = await bookimage
+                    await this.$refs.bookimage.UploadImage();
+                }
+                
+                await axios.put(this.$apiUrl + "book/" + this.$route.params.bookid,this.book,{ headers: {"Authorization" : `bearer ${this.accessToken}`} });
+                await this.$router.push('/books'); 
             }
 
         },
         Cancel() {
             if (confirm("Do you want to cancel editing this book?")) {
-                this.$router.push('/');
+                this.$router.push('/books');
             }
 
         }
     },
     async mounted() {
 
-        //Code for get book detail from API
-        const response = await axios.get (this.$apiUrl + "book/" + this.$route.params.bookid );
-        this.book = await response.data.data[0];
+    this.accessToken = await localStorage.getItem("accessToken");
 
+    if (await this.accessToken) {
+       try {
+            //Code for get book detail from API
+            const response = await axios.get(this.$apiUrl + "book/" + this.$route.params.bookid,{ headers: {"Authorization" : `bearer ${this.accessToken}`} });
+            this.book = await response.data.data[0];
+      } catch {
+        this.$router.push("/login");
+      }
+    } else {
+      this.$router.push("/login");
+    }
+
+        
     },
 }
 </script>

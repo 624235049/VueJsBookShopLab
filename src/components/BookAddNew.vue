@@ -61,6 +61,20 @@
         <div class="form-group row">
             <div class="col">
                 <div class="form-group">
+                    <label for="publishedDate">Published Date:</label>
+                    <vc-date-picker v-model="book.publishedDate" mode="date" id="publishedDate" name="publishedDate" />
+                </div>
+            </div>
+            <div class="col">
+                <div class="form-group">
+                    <label for="bookimage">Upload Image:</label>
+                    <UploadImage id="bookimage" name="bookimage" ref="bookimage" />
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
+            <div class="col">
+                <div class="form-group">
                     <label for="description">Description:</label>
                     <textarea v-model="book.shortDescription" class="form-control" id="description" placeholder="Enter Description" rows="3"></textarea>
 
@@ -77,9 +91,14 @@
 </template>
 
 <script>
+import UploadImage from './UploadImage.vue';
 import axios from "axios";
+import moment from 'moment';
 export default {
     name: "BookAddNew",
+    components:{
+        UploadImage
+        },
     data() {
         return {
             book: {
@@ -92,21 +111,34 @@ export default {
                 shortDescription: "",
                 author: "",
                 category: ""
-            }
+            },
+            
         }
     },
     methods: {
         async SaveBook() {
-            
-            await axios.post(this.$apiUrl + "book", this.book);
-            await this.$router.push('/');
         
+            if (confirm("Do you want to save this book?")) {
+
+
+                this.book.publishedDate = moment(String(this.book.publishedDate)).format('YYYY-MM-DD');
+                let bookimage = await this.$refs.bookimage.getFileName()
+
+                if (await bookimage !== "") {
+                    this.book.thumbnailUrl = await bookimage
+                    await this.$refs.bookimage.UploadImage();
+                }
+
+                this.accessToken = await localStorage.getItem("accessToken");
+                await axios.post(this.$apiUrl + "book",this.book,{ headers: {"Authorization" : `bearer ${this.accessToken}`} });
+                await this.$router.push('/books');
+            }
 
         },
         Cancel() {
             if (confirm("Do you want to cancel adding this book?")) {
 
-                this.$router.push('/');
+                this.$router.push('/books');
 
             }
 

@@ -6,10 +6,26 @@ import BookEdit from '../components/BookEdit.vue'
 import Students from '../components/Students.vue'
 import StudentAddNew from '../components/StudentAddNew.vue'
 import StudentEdit from '../components/StudentEdit.vue'
+import Login from '../components/Login.vue'
 
 Vue.use(VueRouter)
 
 const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Login,
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: Login
+  },
+{
+    path: '*',
+    name: 'NotFound',
+    component: Login    
+  },
   {
     path: '/',
     name: 'Home',

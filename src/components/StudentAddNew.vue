@@ -13,7 +13,7 @@
             <div class="col">
                 <div class="form-group">
                     <label for="title">studentId:</label>
-                    <input type="text" v-model="student.studentId" class="form-control" id="studentId" placeholder="Enter StudentId" name="studentId">
+                    <input type="text" v-model="student.studentid" class="form-control" id="studentId" placeholder="Enter StudentId" name="studentId">
                 </div>
             </div>
             <div class="col">
@@ -39,15 +39,18 @@ export default {
     data() {
         return {
             student: {
-                studentId: "",
+                studentid: "",
                 studentName: ""
-            }
+            },
+            AccessToken:""
         }
     },
     methods: {
         async SaveStudent() {
             
-            await axios.post(this.$apiUrl + "student", this.student);
+            this.accessToken = await localStorage.getItem("accessToken");
+            
+            await axios.post(this.$apiUrl + "student", this.student,{ headers: {"Authorization" : `bearer ${this.accessToken}`} });
             await this.$router.push('/students');
         
 
